@@ -1,4 +1,9 @@
 # Gradle, generated artifacts, and Minecraft development instances
+# Each version folder is a linked Git worktree with its own branch.
+/Fabric_1.20.1/
+/Fabric_1.21.1/
+/Fabric_26.3/
+
 .gradle/
 build/
 out/

@@ -1,13 +1,22 @@
-# Direct Sync builds
+# Direct Sync
 
-The `main` branch keeps all three Fabric versions in separate folders. The `1.20.1`, `1.21.1`, and `26.3` branches each put their corresponding Gradle project at the repository root. Each release has mod version `1.0.0`, but the JARs target different Minecraft versions and must not be mixed.
+The main project directory holds a separate folder for each Minecraft version. Each folder is a linked Git worktree checked out on its corresponding branch, so all three versions can be open and edited at the same time. The `main` branch holds the repository documentation and shared Git settings.
 
-On a version branch, run `.\gradlew.bat build` from the repository root. On `main`, build from the matching Fabric subfolder:
+| Minecraft | Local folder | GitHub branch | Java |
+| --- | --- | --- | --- |
+| 1.20.1 | `Fabric_1.20.1` | [1.20.1](https://github.com/SuperHeroPuppy/DirectSync/tree/1.20.1) | 17 |
+| 1.21.1 | `Fabric_1.21.1` | [1.21.1](https://github.com/SuperHeroPuppy/DirectSync/tree/1.21.1) | 21 |
+| 26.3 | `Fabric_26.3` | [26.3](https://github.com/SuperHeroPuppy/DirectSync/tree/26.3) | 25 |
 
-| Minecraft | Project folder | Build command from this directory |
-| --- | --- | --- |
-| 1.20.1 | `Fabric_1.20.1` | `.\Fabric_1.20.1\gradlew.bat -p Fabric_1.20.1 build` |
-| 1.21.1 | `Fabric_1.21.1` | `.\Fabric_1.21.1\gradlew.bat -p Fabric_1.21.1 build` |
-| 26.3 | `Fabric_26.3` | `.\Fabric_26.3\gradlew.bat -p Fabric_26.3 build` |
+Each version folder has its own source, README, Gradle wrapper, and build output. Run `.\gradlew.bat build` inside that folder. The output is `build/libs/direct-sync-1.0.0.jar`; install the JAR matching the Minecraft version on both server and client. The mod version remains `1.0.0`.
 
-The outputs are in `build/libs/direct-sync-1.0.0.jar` on a version branch or the matching folder's `build/libs/` on `main`. Install the matching output on both the server and its clients. See each version's README for server folders, networking, and update behavior.
+Git commands run inside a version folder act on that version's branch. For example, `git -C Fabric_1.20.1 status` checks the 1.20.1 worktree. The parent repository ignores these linked folders because their files are tracked on the version branches.
+
+To set up all version folders after a fresh clone of `main`, run:
+
+```powershell
+git fetch origin
+git worktree add -b 1.20.1 Fabric_1.20.1 origin/1.20.1
+git worktree add -b 1.21.1 Fabric_1.21.1 origin/1.21.1
+git worktree add -b 26.3 Fabric_26.3 origin/26.3
+```
