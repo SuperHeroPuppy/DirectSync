@@ -88,7 +88,8 @@ public final class DirectSyncCli {
                 .followRedirects(HttpClient.Redirect.NEVER)
                 .build();
         stage(gameDir, manifest, (entry, destination, bytes) ->
-                download(http, base.resolve("mods/" + entry.name()), entry, destination, bytes), progress);
+                download(http, base.resolve(new URI(null, null, "mods/" + entry.name(), null)),
+                        entry, destination, bytes), progress);
     }
 
     static void stageMinecraft(String server, int port, Path gameDir,

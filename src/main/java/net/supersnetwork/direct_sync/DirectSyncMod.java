@@ -262,7 +262,7 @@ public final class DirectSyncMod implements ModInitializer {
             blacklistedIds = blacklist;
             syncPort = port;
             ready = true;
-            LOGGER.info("Serving {} shared and {} client-only mods; blocking {} mod IDs; Minecraft-port sync on {}; HTTP sync {}",
+            LOGGER.info("Serving {} root mods and {} client-folder mods; blocking {} mod IDs; Minecraft-port sync on {}; HTTP sync {}",
                     shared.size(), clientOnly.size(), blacklist.size(), server.getPort(),
                     httpServer == null ? "unavailable" : bind + ":" + port);
         } catch (Exception e) {
@@ -389,8 +389,11 @@ public final class DirectSyncMod implements ModInitializer {
                 String id = metadata.get("id").getAsString();
                 String environment = metadata.has("environment")
                         ? metadata.get("environment").getAsString() : "*";
-                return !id.equals("fabric-api")
-                        && !environment.equals("server") && !environment.equals("client");
+                if (id.equals("fabric-api") || environment.equals("server")) return false;
+                if (environment.equals("client")) {
+                    LOGGER.info("Including client-only mod from server mods/: {}", path.getFileName());
+                }
+                return true;
             }
         } catch (RuntimeException e) {
             throw new IOException("Invalid Fabric metadata in " + path, e);
@@ -411,7 +414,7 @@ public final class DirectSyncMod implements ModInitializer {
                 respond(exchange, 404, new byte[0]);
                 return;
             }
-            String path = exchange.getRequestURI().getRawPath();
+            String path = exchange.getRequestURI().getPath();
             if ("/manifest".equals(path)) {
                 List<SyncProtocol.ModFile> sorted = new ArrayList<>(files.values());
                 sorted.sort(Comparator.comparing(SyncProtocol.ModFile::name));

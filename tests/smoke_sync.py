@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+import urllib.parse
 import zipfile
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -26,6 +27,7 @@ corrupt = False
 
 class Handler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
+        request_path = urllib.parse.unquote(self.path)
         if self.path == "/manifest":
             lines = ["directsync/2"]
             for name, body in state.items():
@@ -34,8 +36,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     mod_id = json.loads(archive.read("fabric.mod.json"))["id"]
                 lines.append(f"{name}\t{mod_id}\t{len(body)}\t{hashlib.sha256(body).hexdigest()}")
             payload = ("\n".join(lines) + "\n").encode()
-        elif self.path.startswith("/mods/") and self.path[6:] in state:
-            payload = state[self.path[6:]]
+        elif request_path.startswith("/mods/") and request_path[6:] in state:
+            payload = state[request_path[6:]]
             if corrupt:
                 payload = payload[:-1] + bytes([payload[-1] ^ 1])
         else:
@@ -123,6 +125,13 @@ with tempfile.TemporaryDirectory() as tmp:
             assert (relaunch_game / "mods/relaunch.jar").read_bytes() == state["relaunch.jar"]
             assert not (relaunch_game / "mods/.directsync-staging/manifest.txt").exists()
         state.clear()
+        state["Impaled 1.20.1.jar"] = fabric_jar("impaled")
+        state["Mod (extra) [1]+fabric.jar"] = fabric_jar("extraname")
+        run("sync", *opts)
+        run("apply", "--game-dir", str(game))
+        for name, body in state.items():
+            assert (game / "mods" / name).read_bytes() == body
+        state.clear()
         state["direct-sync-1.0.0.jar"] = fabric_jar("directsync", "1.0.0")
         (game / "mods/direct-sync-old.jar").write_bytes(fabric_jar("directsync", "0.9.0"))
         run("sync", *opts)
@@ -134,6 +143,12 @@ with tempfile.TemporaryDirectory() as tmp:
         corrupt = True
         result = run("sync", *opts, expected=1)
         assert "SHA-256 mismatch" in result.stderr
-        print("PASS: root sync, self update, apply after exit, stale backup, legacy migration, relaunch ordering, personal mods, hash rejection")
+        corrupt = False
+        state.clear()
+        state["../escape.jar"] = fabric_jar("escape")
+        result = run("sync", *opts, expected=1)
+        assert "Invalid manifest line" in result.stderr
+        assert not (game / "escape.jar").exists()
+        print("PASS: root sync, self update, apply after exit, stale backup, legacy migration, relaunch ordering, personal mods, spaced filenames, hash and path rejection")
     finally:
         server.shutdown()

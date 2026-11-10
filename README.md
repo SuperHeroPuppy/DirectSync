@@ -8,7 +8,7 @@ Install this Direct Sync build and Fabric API on both the server and each client
 
 | Location | Purpose |
 | --- | --- |
-| `mods/*.jar` | Shared mods loaded by the server and sent to clients. Direct Sync itself is included; Fabric API is excluded from automatic transfer. |
+| `mods/*.jar` | Shared and client-only mods sent to clients. Fabric loads each JAR only on its declared side. Direct Sync itself is included; Fabric API and mods declaring `environment: "server"` are excluded from automatic transfer. |
 | `mods/client/*.jar` | Client-only mods sent to clients. The server does not load them. |
 | `mods/server/*.jar` | Server-only mods loaded by the server and excluded from transfer. |
 | `mods/Blacklist/*.jar` | Mod IDs forbidden on clients. These JARs are neither loaded nor sent. |
@@ -22,7 +22,9 @@ Fabric Loader does not scan nested mod folders on its own. To **load `mods/serve
 
 The argument must appear before `-jar` or the server main class. Replace `/data` with the actual server game directory. Direct Sync logs a warning for each JAR in `mods/server` that Fabric did not load. Keep these JARs out of the root `mods/` folder so they cannot be selected for transfer.
 
-The server creates `config/directsync.properties`, `config/directsync-server-mods.txt`, and `config/directsync-excluded-mods.txt` at first start. By default, `selection=auto` selects compatible Fabric JARs directly in root `mods/`. It excludes JARs declaring `environment: "server"` or `environment: "client"`, and Fabric API. Put other server-only root JAR filenames in `directsync-excluded-mods.txt`, or use `selection=manual` and list exact shared filenames in `directsync-server-mods.txt`. Add Direct Sync to the manual list if you use that mode and want it updated too. `mods/client` is always sent regardless of the root selection mode. Restart the server after changing JARs or selection files.
+The server creates `config/directsync.properties`, `config/directsync-server-mods.txt`, and `config/directsync-excluded-mods.txt` at first start. By default, `selection=auto` selects compatible Fabric JARs directly in root `mods/`, including JARs declaring `environment: "client"`. It excludes mods declaring `environment: "server"` and Fabric API. Client-only JARs may stay in root `mods/` or in `mods/client/`; Fabric does not load mods declaring `environment: "client"` on a dedicated server. Put other server-only root JAR filenames in `directsync-excluded-mods.txt`, or use `selection=manual` and list exact shared filenames in `directsync-server-mods.txt`. Add Direct Sync to the manual list if you use that mode and want it updated too. `mods/client` is always sent regardless of the root selection mode. Restart the server after changing JARs or selection files.
+
+JAR filenames may contain spaces, parentheses, and square brackets, such as `Impaled 1.20.1.jar`. Install this updated Direct Sync build on both sides to enable those filenames; an older client cannot read manifests that contain them.
 
 Shared and client-only filenames and mod IDs must be unique. Each JAR is limited to 128 MiB; the combined manifest is limited to 256 JARs and 1 GiB. The server verifies each file's SHA-256 hash when it starts, and clients verify downloads before applying them.
 
@@ -56,5 +58,7 @@ java -cp .\build\libs\direct-sync-1.0.0.jar net.supersnetwork.direct_sync.Direct
 `sync-minecraft` uses the published Minecraft port. The older `sync` command uses the HTTP port and remains available where that port is exposed.
 
 Run `python tests/smoke_sync.py` after building to check staging, root-folder install, self update, backups, and hash rejection. With the development `runServer` running on port 25702, `python tests/smoke_quarantine.py` checks the live upload protocol and quarantine verification.
+
+For the server selection regression test, run `python tests/smoke_selection.py --prepare`, start `.\gradlew.bat runServer`, then run `python tests/smoke_selection.py` in a second terminal. It checks the Impaled filename and the client-only metadata used by Satin and TooltipFix through both Minecraft-port and HTTP downloads, plus server-only and configured exclusions.
 
 Only sync from servers you trust: downloaded JARs can execute code when Minecraft starts. Transfer hashes detect damage, but the server manifest is not authenticated. Blacklist checks use mod IDs reported by the normal client; a modified client can lie about them.

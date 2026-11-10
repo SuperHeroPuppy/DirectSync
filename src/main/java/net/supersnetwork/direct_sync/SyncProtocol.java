@@ -44,7 +44,8 @@ final class SyncProtocol {
     }
 
     static boolean validName(String name) {
-        return name != null && name.length() <= 128 && name.matches("[A-Za-z0-9][A-Za-z0-9._+-]*\\.jar");
+        return name != null && name.length() <= 128
+                && name.matches("[A-Za-z0-9][A-Za-z0-9 ._+()\\[\\]-]*\\.jar");
     }
 
     static List<ModFile> parseManifest(String manifest) throws IOException {
