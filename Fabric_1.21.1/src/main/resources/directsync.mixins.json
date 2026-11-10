@@ -1,8 +1,0 @@
-{
-  "required": true,
-  "package": "net.supersnetwork.direct_sync.mixin",
-  "compatibilityLevel": "JAVA_21",
-  "mixins": ["ServerHandshakeMixin", "StatusUploadProtocolMixin"],
-  "client": ["client.ConnectScreenMixin"],
-  "injectors": { "defaultRequire": 1 }
-}
