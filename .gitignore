@@ -1,0 +1,26 @@
+# Gradle, generated artifacts, and Minecraft development instances
+.gradle/
+build/
+out/
+run/
+runs/
+logs/
+*.log
+crash-reports/
+
+# IDE and OS files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Compiled files (retain the Gradle wrapper JARs)
+*.class
+*.jar
+!**/gradle/wrapper/gradle-wrapper.jar
+hs_err_pid*
+replay_pid*

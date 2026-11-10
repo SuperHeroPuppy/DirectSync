@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "directsync",
+  "version": "${version}",
+  "name": "Direct Sync",
+  "description": "Checks and downloads server mods before login, then can restart and reconnect the client.",
+  "authors": ["SupersNetwork"],
+  "license": "MIT",
+  "environment": "*",
+  "mixins": ["directsync.mixins.json"],
+  "entrypoints": {
+    "main": ["net.supersnetwork.direct_sync.DirectSyncMod"],
+    "client": ["net.supersnetwork.direct_sync.DirectSyncClient"]
+  },
+  "depends": {
+    "fabricloader": ">=0.20.1",
+    "minecraft": "26.3",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}
